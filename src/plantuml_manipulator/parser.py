@@ -9,6 +9,7 @@ See docs/specification.md for detailed algorithm descriptions.
 from typing import List, Dict, Optional, Tuple
 from pathlib import Path
 from dataclasses import dataclass
+import re
 
 
 @dataclass
@@ -74,7 +75,22 @@ class PlantUMLParser:
             FileNotFoundError: If file doesn't exist
             ValueError: If file format is invalid
         """
-        raise NotImplementedError("Parser implementation pending - see docs/specification.md")
+        if not isinstance(file_path, Path):
+            file_path = Path(file_path)
+
+        if not file_path.exists():
+            raise FileNotFoundError(f"File not found: {file_path}")
+
+        with open(file_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+
+        # Remove newlines but keep empty lines
+        lines = [line.rstrip('\n\r') for line in lines]
+
+        structure = self.parse_lines(lines)
+        structure.file_path = file_path
+
+        return structure
 
     def parse_lines(self, lines: List[str]) -> DiagramStructure:
         """Parse PlantUML content from a list of lines.
@@ -85,7 +101,24 @@ class PlantUMLParser:
         Returns:
             DiagramStructure containing parsed information
         """
-        raise NotImplementedError("Parser implementation pending - see docs/specification.md")
+        # Check for @startuml and @enduml tags
+        has_start_tag = any(line.strip().startswith('@startuml') for line in lines)
+        has_end_tag = any(line.strip().startswith('@enduml') for line in lines)
+
+        # Extract participants and groups
+        participants = self.find_participants(lines)
+        groups = self.find_groups(lines)
+
+        structure = DiagramStructure(
+            file_path=Path(),  # Will be set by parse_file
+            participants=participants,
+            groups=groups,
+            raw_lines=lines,
+            has_start_tag=has_start_tag,
+            has_end_tag=has_end_tag
+        )
+
+        return structure
 
     def find_participants(self, lines: List[str]) -> List[Participant]:
         """Extract all participant declarations from lines.
@@ -96,7 +129,31 @@ class PlantUMLParser:
         Returns:
             List of Participant objects
         """
-        raise NotImplementedError("Parser implementation pending - see docs/specification.md")
+        participants = []
+        # Pattern: participant "Name" as Alias [#color]
+        # Handles variations like: participant Name as Alias, participant "Name" as Alias #color
+        pattern = re.compile(
+            r'^\s*participant\s+(?:"([^"]+)"|(\S+))\s+as\s+(\w+)(?:\s+#(\w+))?'
+        )
+
+        for i, line in enumerate(lines):
+            match = pattern.match(line)
+            if match:
+                # Group 1 is quoted name, group 2 is unquoted name
+                name = match.group(1) if match.group(1) else match.group(2)
+                alias = match.group(3)
+                color = match.group(4) if match.group(4) else None
+
+                participant = Participant(
+                    name=name,
+                    alias=alias,
+                    color=color,
+                    line_number=i,
+                    raw_line=line
+                )
+                participants.append(participant)
+
+        return participants
 
     def find_groups(self, lines: List[str]) -> List[Group]:
         """Extract all group blocks from lines.
@@ -109,7 +166,49 @@ class PlantUMLParser:
         Returns:
             List of Group objects
         """
-        raise NotImplementedError("Parser implementation pending - see docs/specification.md")
+        groups = []
+        group_stack = []  # Stack to track nested groups
+
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+
+            # Check for group start
+            if self.is_group_start(line):
+                # Extract group name (everything after "group ")
+                group_name = stripped[6:].strip()  # Remove "group " prefix
+                indent_level = self.get_indent_level(line)
+
+                # Create group entry
+                group_info = {
+                    'name': group_name,
+                    'start_line': i,
+                    'indent_level': indent_level,
+                    'content': []
+                }
+                group_stack.append(group_info)
+
+            # Check for group end
+            elif self.is_group_end(line):
+                if group_stack:
+                    # Pop the most recent group
+                    group_info = group_stack.pop()
+
+                    # Create Group object
+                    group = Group(
+                        name=group_info['name'],
+                        start_line=group_info['start_line'],
+                        end_line=i,
+                        content=group_info['content'],
+                        indent_level=group_info['indent_level']
+                    )
+                    groups.append(group)
+
+            # If we're inside a group, add line to its content
+            elif group_stack:
+                # Add to the innermost group
+                group_stack[-1]['content'].append(line)
+
+        return groups
 
     def get_indent_level(self, line: str) -> int:
         """Calculate the indentation level of a line.

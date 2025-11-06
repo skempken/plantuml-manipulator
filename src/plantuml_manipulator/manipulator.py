@@ -11,6 +11,7 @@ See docs/specification.md for detailed algorithm descriptions.
 from typing import List, Optional
 from pathlib import Path
 from .parser import DiagramStructure, Group, Participant
+from .exceptions import GroupNotFoundError, ParticipantNotFoundError
 
 
 class DiagramManipulator:
@@ -47,9 +48,34 @@ class DiagramManipulator:
             Modified diagram as list of lines
 
         Raises:
-            ValueError: If group not found
+            GroupNotFoundError: If group not found
         """
-        raise NotImplementedError("Manipulator implementation pending - see docs/specification.md")
+        # Find the target group
+        target_group = None
+        for group in structure.groups:
+            if group.name == group_name:
+                target_group = group
+                break
+
+        if target_group is None:
+            raise GroupNotFoundError(f"Group '{group_name}' not found in diagram")
+
+        # Insert position is after the end line of the group
+        insert_pos = target_group.end_line + 1
+
+        # Build the new lines list
+        result = structure.raw_lines[:insert_pos].copy()
+
+        # Add empty line before block for spacing
+        result.append('')
+
+        # Add the block lines
+        result.extend(block_lines)
+
+        # Add remaining lines
+        result.extend(structure.raw_lines[insert_pos:])
+
+        return result
 
     def add_participant(
         self,
@@ -69,8 +95,53 @@ class DiagramManipulator:
 
         Returns:
             Modified diagram as list of lines
+
+        Raises:
+            ParticipantNotFoundError: If after_participant is specified but not found
         """
-        raise NotImplementedError("Manipulator implementation pending - see docs/specification.md")
+        result = structure.raw_lines.copy()
+
+        if not structure.participants:
+            # No participants yet - find a good position to add it
+            # Typically after @startuml and title, before any interactions
+            insert_pos = 0
+            for i, line in enumerate(result):
+                if line.strip().startswith('@startuml') or line.strip().startswith('title'):
+                    insert_pos = i + 1
+                elif line.strip() and not line.strip().startswith('title'):
+                    # Found first non-title, non-startuml line
+                    break
+
+            result.insert(insert_pos, '')
+            result.insert(insert_pos + 1, participant_line)
+            return result
+
+        # Find the insertion position
+        insert_pos = None
+
+        if after_participant:
+            # Find the specified participant
+            target_participant = None
+            for p in structure.participants:
+                if p.alias == after_participant or p.name == after_participant:
+                    target_participant = p
+                    break
+
+            if target_participant is None:
+                raise ParticipantNotFoundError(
+                    f"Participant '{after_participant}' not found in diagram"
+                )
+
+            insert_pos = target_participant.line_number + 1
+        else:
+            # Add after the last participant
+            last_participant = structure.participants[-1]
+            insert_pos = last_participant.line_number + 1
+
+        # Insert the new participant
+        result.insert(insert_pos, participant_line)
+
+        return result
 
     def remove_group(self, structure: DiagramStructure, group_name: str) -> List[str]:
         """Remove a group block from the diagram.

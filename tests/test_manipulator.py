@@ -5,6 +5,7 @@ from pathlib import Path
 
 from plantuml_manipulator.manipulator import DiagramManipulator, FileProcessor
 from plantuml_manipulator.parser import DiagramStructure, Group, Participant
+from plantuml_manipulator.exceptions import GroupNotFoundError, ParticipantNotFoundError
 
 
 class TestDiagramManipulator:
@@ -39,7 +40,6 @@ class TestDiagramManipulator:
         """Test that manipulator initializes correctly."""
         assert manipulator is not None
 
-    @pytest.mark.skip(reason="Implementation pending")
     def test_insert_after_group(self, manipulator, sample_structure):
         """Test inserting a block after a group."""
         block = ["System -> System: Additional step"]
@@ -47,14 +47,12 @@ class TestDiagramManipulator:
         assert result is not None
         assert isinstance(result, list)
 
-    @pytest.mark.skip(reason="Implementation pending")
     def test_insert_after_nonexistent_group(self, manipulator, sample_structure):
         """Test that inserting after nonexistent group raises error."""
         block = ["System -> System: Step"]
-        with pytest.raises(ValueError):
+        with pytest.raises(GroupNotFoundError):
             manipulator.insert_after_group(sample_structure, "Nonexistent Group", block)
 
-    @pytest.mark.skip(reason="Implementation pending")
     def test_add_participant(self, manipulator, sample_structure):
         """Test adding a participant."""
         participant_line = 'participant "API" as API #orange'
@@ -62,7 +60,6 @@ class TestDiagramManipulator:
         assert result is not None
         assert isinstance(result, list)
 
-    @pytest.mark.skip(reason="Implementation pending")
     def test_add_participant_at_end(self, manipulator, sample_structure):
         """Test adding a participant at the end."""
         participant_line = 'participant "NewService" as NewService'
