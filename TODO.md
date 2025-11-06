@@ -58,16 +58,16 @@
 - [x] Unit tests for manipulator
 - [x] Test fixtures and examples
 
-### Phase 2: CLI & File Processing (Next)
+### Phase 2: CLI & File Processing ✅ Complete
 
-- [ ] CLI implementation (cli.py)
-  - [ ] insert-after command
-  - [ ] add-participant command
-  - [ ] --dry-run and --verbose flags
-- [ ] FileProcessor implementation
-  - [ ] Batch file processing
-  - [ ] File filtering (only-if-has-participant, skip-if-exists)
-  - [ ] Backup functionality
+- [x] CLI implementation (cli.py)
+  - [x] insert-after command
+  - [x] add-participant command
+  - [x] --dry-run and --verbose flags
+- [x] FileProcessor implementation
+  - [x] Batch file processing
+  - [x] File filtering (only-if-has-participant, skip-if-exists, only-if-has-group)
+  - [x] Backup functionality
 
 ### Phase 3: Validation & Reporting
 

@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Optional
 
 from . import __version__
+from .manipulator import DiagramManipulator, FileProcessor
+from .parser import PlantUMLParser
 
 
 @click.group()
@@ -80,9 +82,53 @@ def insert_after(
             --only-if-has-participant "Database" \\
             --backup
     """
-    click.echo("L Command 'insert-after' not yet implemented")
-    click.echo("See docs/specification.md for implementation details")
-    raise SystemExit(1)
+    # Read the block file
+    block_path = Path(block_file)
+    if not block_path.exists():
+        click.echo(f"Error: Block file not found: {block_file}", err=True)
+        raise SystemExit(1)
+
+    with open(block_path, 'r', encoding='utf-8') as f:
+        block_lines = [line.rstrip('\n\r') for line in f.readlines()]
+
+    # Create manipulator and processor
+    manipulator = DiagramManipulator()
+    processor = FileProcessor(dry_run=dry_run, create_backup=backup, verbose=verbose)
+
+    # Define the operation
+    def operation(structure):
+        return manipulator.insert_after_group(structure, after_group, block_lines)
+
+    # Process files
+    if verbose or dry_run:
+        mode = "[DRY RUN] " if dry_run else ""
+        click.echo(f"{mode}Inserting block after group '{after_group}'")
+        click.echo(f"Pattern: {pattern}")
+        click.echo(f"Block file: {block_file}")
+        click.echo()
+
+    results = processor.process_files(
+        pattern=pattern,
+        operation=operation,
+        skip_if_exists=skip_if_exists,
+        only_if_has_participant=only_if_has_participant,
+        only_if_has_group=only_if_has_group,
+    )
+
+    # Print summary
+    click.echo()
+    click.echo("Summary:")
+    click.echo(f"  Total files found: {results['total']}")
+    click.echo(f"  Processed: {len(results['processed'])}")
+    click.echo(f"  Skipped: {len(results['skipped'])}")
+    click.echo(f"  Errors: {len(results['errors'])}")
+
+    if results['errors']:
+        click.echo()
+        click.echo("Errors:", err=True)
+        for error in results['errors']:
+            click.echo(f"  {error['file']}: {error['error']}", err=True)
+        raise SystemExit(1)
 
 
 @main.command("add-participant")
@@ -121,9 +167,44 @@ def add_participant(
             --participant 'participant "NewService" as NewService' \\
             --backup
     """
-    click.echo("L Command 'add-participant' not yet implemented")
-    click.echo("See docs/specification.md for implementation details")
-    raise SystemExit(1)
+    # Create manipulator and processor
+    manipulator = DiagramManipulator()
+    processor = FileProcessor(dry_run=dry_run, create_backup=backup, verbose=verbose)
+
+    # Define the operation
+    def operation(structure):
+        return manipulator.add_participant(structure, participant, after_participant)
+
+    # Process files
+    if verbose or dry_run:
+        mode = "[DRY RUN] " if dry_run else ""
+        click.echo(f"{mode}Adding participant: {participant}")
+        if after_participant:
+            click.echo(f"After participant: {after_participant}")
+        click.echo(f"Pattern: {pattern}")
+        click.echo()
+
+    results = processor.process_files(
+        pattern=pattern,
+        operation=operation,
+        skip_if_exists=skip_if_exists,
+        only_if_has_group=only_if_has_group,
+    )
+
+    # Print summary
+    click.echo()
+    click.echo("Summary:")
+    click.echo(f"  Total files found: {results['total']}")
+    click.echo(f"  Processed: {len(results['processed'])}")
+    click.echo(f"  Skipped: {len(results['skipped'])}")
+    click.echo(f"  Errors: {len(results['errors'])}")
+
+    if results['errors']:
+        click.echo()
+        click.echo("Errors:", err=True)
+        for error in results['errors']:
+            click.echo(f"  {error['file']}: {error['error']}", err=True)
+        raise SystemExit(1)
 
 
 @main.command("validate")

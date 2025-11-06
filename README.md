@@ -178,14 +178,17 @@ python -m plantuml_manipulator report structure --file diagram.puml
 
 ## Development Status
 
-**Current Status**: Specification and documentation complete, implementation pending.
+**Current Status**: Core functionality implemented, validation and reporting in progress.
 
 This repository currently contains:
 - ✅ Complete technical specification
 - ✅ Comprehensive API documentation
 - ✅ Claude Code skill integration
 - ✅ Example workflows
-- ⏳ Implementation (coming soon)
+- ✅ Core implementation (parser, manipulator)
+- ✅ CLI commands (insert-after, add-participant)
+- ✅ Batch file processing with filtering
+- ⏳ Validation and reporting (in progress)
 
 ## Contributing
 
@@ -241,28 +244,29 @@ See [docs/claude-skill.md](docs/claude-skill.md) for integration details.
 
 ## Roadmap
 
-### Phase 1: Core Implementation
-- [ ] Implement `insert-after` command
-- [ ] Implement `add-participant` command
-- [ ] Basic error handling
-- [ ] Unit tests
+### Phase 1: Core Implementation ✅ Complete
+- [x] Implement `insert-after` command
+- [x] Implement `add-participant` command
+- [x] Basic error handling
+- [x] Unit tests (parser and manipulator)
 
-### Phase 2: Validation & Reporting
+### Phase 2: CLI & File Processing ✅ Complete
+- [x] Batch file processing
+- [x] Filtering (only-if-has-participant, skip-if-exists, only-if-has-group)
+- [x] Backup system
+- [x] Dry-run and verbose modes
+
+### Phase 3: Validation & Reporting (Next)
 - [ ] Implement `validate` command
 - [ ] Implement `report` commands
 - [ ] JSON output format
 - [ ] Integration tests
 
-### Phase 3: Robustness
-- [ ] Backup system
-- [ ] Comprehensive error messages
-- [ ] Performance optimizations
-- [ ] Full test coverage
-
 ### Phase 4: Advanced Features
 - [ ] Interactive mode
 - [ ] Configuration file support
 - [ ] Plugin system for custom validators
+- [ ] remove_group() and replace_group() methods
 
 ## Support
 

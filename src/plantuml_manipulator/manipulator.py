@@ -8,9 +8,11 @@ This module provides functions to manipulate PlantUML sequence diagrams:
 See docs/specification.md for detailed algorithm descriptions.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Callable, Dict, Any
 from pathlib import Path
-from .parser import DiagramStructure, Group, Participant
+import shutil
+import glob as glob_module
+from .parser import DiagramStructure, Group, Participant, PlantUMLParser
 from .exceptions import GroupNotFoundError, ParticipantNotFoundError
 
 
@@ -221,11 +223,11 @@ class FileProcessor:
     def process_files(
         self,
         pattern: str,
-        operation: callable,
+        operation: Callable[[DiagramStructure], List[str]],
         skip_if_exists: Optional[str] = None,
         only_if_has_participant: Optional[str] = None,
         only_if_has_group: Optional[str] = None,
-    ) -> dict:
+    ) -> Dict[str, Any]:
         """Process multiple files matching a pattern.
 
         Args:
@@ -238,7 +240,93 @@ class FileProcessor:
         Returns:
             Dictionary with processing results
         """
-        raise NotImplementedError("FileProcessor implementation pending - see docs/specification.md")
+        parser = PlantUMLParser()
+        results = {
+            'processed': [],
+            'skipped': [],
+            'errors': [],
+            'total': 0
+        }
+
+        # Find matching files
+        files = glob_module.glob(pattern, recursive=True)
+        files = [Path(f) for f in files if Path(f).is_file()]
+        results['total'] = len(files)
+
+        if self.verbose:
+            print(f"Found {len(files)} files matching pattern '{pattern}'")
+
+        for file_path in files:
+            try:
+                # Parse the file
+                structure = parser.parse_file(file_path)
+
+                # Apply filters
+                if skip_if_exists:
+                    file_content = '\n'.join(structure.raw_lines)
+                    if skip_if_exists in file_content:
+                        if self.verbose:
+                            print(f"Skipping {file_path}: contains '{skip_if_exists}'")
+                        results['skipped'].append({
+                            'file': str(file_path),
+                            'reason': f"contains '{skip_if_exists}'"
+                        })
+                        continue
+
+                if only_if_has_participant:
+                    has_participant = any(
+                        p.name == only_if_has_participant or p.alias == only_if_has_participant
+                        for p in structure.participants
+                    )
+                    if not has_participant:
+                        if self.verbose:
+                            print(f"Skipping {file_path}: missing participant '{only_if_has_participant}'")
+                        results['skipped'].append({
+                            'file': str(file_path),
+                            'reason': f"missing participant '{only_if_has_participant}'"
+                        })
+                        continue
+
+                if only_if_has_group:
+                    has_group = any(g.name == only_if_has_group for g in structure.groups)
+                    if not has_group:
+                        if self.verbose:
+                            print(f"Skipping {file_path}: missing group '{only_if_has_group}'")
+                        results['skipped'].append({
+                            'file': str(file_path),
+                            'reason': f"missing group '{only_if_has_group}'"
+                        })
+                        continue
+
+                # Apply the operation
+                modified_lines = operation(structure)
+
+                # Create backup if requested
+                if self.create_backup and not self.dry_run:
+                    self.create_backup_file(file_path)
+
+                # Write the modified content
+                if not self.dry_run:
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.write('\n'.join(modified_lines))
+                    if self.verbose:
+                        print(f"✓ Processed {file_path}")
+                else:
+                    if self.verbose:
+                        print(f"[DRY RUN] Would process {file_path}")
+
+                results['processed'].append(str(file_path))
+
+            except Exception as e:
+                error_msg = f"{file_path}: {str(e)}"
+                if self.verbose:
+                    print(f"✗ Error processing {file_path}: {str(e)}")
+                results['errors'].append({
+                    'file': str(file_path),
+                    'error': str(e)
+                })
+
+        return results
 
     def create_backup_file(self, file_path: Path) -> None:
         """Create a backup of a file.
@@ -246,4 +334,7 @@ class FileProcessor:
         Args:
             file_path: Path to file to backup
         """
-        raise NotImplementedError("FileProcessor implementation pending - see docs/specification.md")
+        backup_path = file_path.with_suffix(file_path.suffix + '.bak')
+        shutil.copy2(file_path, backup_path)
+        if self.verbose:
+            print(f"Created backup: {backup_path}")
