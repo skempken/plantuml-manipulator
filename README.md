@@ -113,7 +113,7 @@ python -m plantuml_manipulator insert-after \
 - **[Specification](docs/specification.md)**: Complete technical specification with algorithms and data structures
 - **[API Reference](docs/api-reference.md)**: Detailed command reference and options
 - **[Claude Skill](docs/claude-skill.md)**: Integration guide for Claude Code
-- **[Examples](examples/sample-workflows.md)**: Real-world usage examples
+- **[Examples](examples/README.md)**: Real-world usage examples
 
 ## Commands
 

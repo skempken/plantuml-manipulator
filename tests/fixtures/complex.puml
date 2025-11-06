@@ -1,0 +1,33 @@
+@startuml
+title Complex Business Process
+
+participant "User" as User
+participant "Frontend" as Frontend
+participant "API" as API
+participant "ValidationService" as Validation
+participant "Database" as DB
+
+group Authentication
+    User -> Frontend: Login
+    Frontend -> API: Auth request
+    API -> API: Verify credentials
+    API --> Frontend: Auth token
+    Frontend --> User: Success
+end group
+
+group Process Request
+    User -> Frontend: Submit data
+    Frontend -> API: POST /process
+    API -> Validation: Validate request
+    Validation --> API: Valid
+end group
+
+group Data Processing
+    API -> DB: Save data
+    DB --> API: Saved
+    API -> API: Process business logic
+    API --> Frontend: Result
+    Frontend --> User: Display success
+end group
+
+@enduml

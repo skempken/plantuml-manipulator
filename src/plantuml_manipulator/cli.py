@@ -1,0 +1,234 @@
+"""PlantUML Manipulator CLI - Command-line interface.
+
+This module provides the Click-based CLI for the PlantUML Manipulator tool.
+
+See docs/api-reference.md for detailed command documentation.
+"""
+
+import click
+from pathlib import Path
+from typing import Optional
+
+from . import __version__
+
+
+@click.group()
+@click.version_option(version=__version__)
+def main():
+    """PlantUML Manipulator - Structured manipulation of PlantUML sequence diagrams.
+
+    Perform batch operations like inserting blocks after groups, adding participants,
+    and validating diagram structures across multiple files.
+
+    Examples:
+
+        # Insert a block after a group
+        plantuml-manipulator insert-after --pattern "*.puml" \\
+            --after-group "Process Request" --block-file snippet.puml --dry-run
+
+        # Add a participant
+        plantuml-manipulator add-participant --pattern "*.puml" \\
+            --participant 'participant "API" as API' --after-participant "Frontend"
+
+        # Validate structures
+        plantuml-manipulator validate --pattern "*.puml" \\
+            --require-group "Validation" --report-format table
+    """
+    pass
+
+
+@main.command("insert-after")
+@click.option("--pattern", required=True, help="Glob pattern for files to process")
+@click.option("--after-group", required=True, help="Name of group to insert after")
+@click.option("--block-file", required=True, type=click.Path(exists=True), help="File containing block to insert")
+@click.option("--skip-if-exists", help="Skip files that already contain this text")
+@click.option("--only-if-has-participant", help="Only process files with this participant")
+@click.option("--only-if-has-group", help="Only process files with this group")
+@click.option("--dry-run", is_flag=True, help="Show changes without executing")
+@click.option("--backup", is_flag=True, help="Create .bak files before modification")
+@click.option("--verbose", is_flag=True, help="Show detailed progress")
+def insert_after(
+    pattern: str,
+    after_group: str,
+    block_file: str,
+    skip_if_exists: Optional[str],
+    only_if_has_participant: Optional[str],
+    only_if_has_group: Optional[str],
+    dry_run: bool,
+    backup: bool,
+    verbose: bool,
+):
+    """Insert a code block after a specific group in multiple files.
+
+    This command finds all files matching PATTERN, locates the group named
+    AFTER_GROUP, and inserts the content from BLOCK_FILE after it.
+
+    Examples:
+
+        # Insert validation block after "Process Request"
+        plantuml-manipulator insert-after \\
+            --pattern "diagrams/**/*.puml" \\
+            --after-group "Process Request" \\
+            --block-file snippets/validation.puml \\
+            --dry-run
+
+        # Insert only in files that have a specific participant
+        plantuml-manipulator insert-after \\
+            --pattern "*.puml" \\
+            --after-group "Initialize" \\
+            --block-file setup.puml \\
+            --only-if-has-participant "Database" \\
+            --backup
+    """
+    click.echo("L Command 'insert-after' not yet implemented")
+    click.echo("See docs/specification.md for implementation details")
+    raise SystemExit(1)
+
+
+@main.command("add-participant")
+@click.option("--pattern", required=True, help="Glob pattern for files to process")
+@click.option("--participant", required=True, help="Participant declaration to add")
+@click.option("--after-participant", help="Add after this participant")
+@click.option("--skip-if-exists", help="Skip files that already contain this text")
+@click.option("--only-if-has-group", help="Only process files with this group")
+@click.option("--dry-run", is_flag=True, help="Show changes without executing")
+@click.option("--backup", is_flag=True, help="Create .bak files before modification")
+@click.option("--verbose", is_flag=True, help="Show detailed progress")
+def add_participant(
+    pattern: str,
+    participant: str,
+    after_participant: Optional[str],
+    skip_if_exists: Optional[str],
+    only_if_has_group: Optional[str],
+    dry_run: bool,
+    backup: bool,
+    verbose: bool,
+):
+    """Add a participant declaration to multiple files.
+
+    Examples:
+
+        # Add a participant after another one
+        plantuml-manipulator add-participant \\
+            --pattern "*.puml" \\
+            --participant 'participant "API" as API #orange' \\
+            --after-participant "Frontend" \\
+            --skip-if-exists "API"
+
+        # Add to all files (at the end of participant list)
+        plantuml-manipulator add-participant \\
+            --pattern "*.puml" \\
+            --participant 'participant "NewService" as NewService' \\
+            --backup
+    """
+    click.echo("L Command 'add-participant' not yet implemented")
+    click.echo("See docs/specification.md for implementation details")
+    raise SystemExit(1)
+
+
+@main.command("validate")
+@click.option("--pattern", required=True, help="Glob pattern for files to validate")
+@click.option("--require-group", multiple=True, help="Group that must be present (can be used multiple times)")
+@click.option(
+    "--require-participant", multiple=True, help="Participant that must be present (can be used multiple times)"
+)
+@click.option("--only-if-has-participant", help="Only validate files with this participant")
+@click.option("--only-if-has-group", help="Only validate files with this group")
+@click.option("--report-format", type=click.Choice(["table", "json", "simple"]), default="table", help="Output format")
+@click.option("--verbose", is_flag=True, help="Show detailed validation results")
+def validate(
+    pattern: str,
+    require_group: tuple,
+    require_participant: tuple,
+    only_if_has_participant: Optional[str],
+    only_if_has_group: Optional[str],
+    report_format: str,
+    verbose: bool,
+):
+    """Validate that diagrams contain required structures.
+
+    Examples:
+
+        # Check if all files have required groups
+        plantuml-manipulator validate \\
+            --pattern "*.puml" \\
+            --require-group "Process Request" \\
+            --require-group "Handle Response"
+
+        # Check specific files for participants
+        plantuml-manipulator validate \\
+            --pattern "payment/*.puml" \\
+            --require-participant "PaymentService" \\
+            --require-participant "Database" \\
+            --report-format json
+    """
+    click.echo("L Command 'validate' not yet implemented")
+    click.echo("See docs/specification.md for implementation details")
+    raise SystemExit(1)
+
+
+@main.group("report")
+def report():
+    """Generate reports about diagram structures."""
+    pass
+
+
+@report.command("groups")
+@click.option("--pattern", required=True, help="Glob pattern for files")
+@click.option("--format", type=click.Choice(["table", "json", "csv"]), default="table", help="Output format")
+def report_groups(pattern: str, format: str):
+    """List all groups found in matching files.
+
+    Examples:
+
+        # Show all groups in table format
+        plantuml-manipulator report groups --pattern "*.puml"
+
+        # Export to JSON
+        plantuml-manipulator report groups --pattern "*.puml" --format json
+    """
+    click.echo("L Command 'report groups' not yet implemented")
+    click.echo("See docs/specification.md for implementation details")
+    raise SystemExit(1)
+
+
+@report.command("participants")
+@click.option("--pattern", required=True, help="Glob pattern for files")
+@click.option("--format", type=click.Choice(["table", "json", "csv"]), default="table", help="Output format")
+def report_participants(pattern: str, format: str):
+    """List all participants found in matching files.
+
+    Examples:
+
+        # Show all participants
+        plantuml-manipulator report participants --pattern "*.puml"
+
+        # Export to CSV
+        plantuml-manipulator report participants --pattern "*.puml" --format csv
+    """
+    click.echo("L Command 'report participants' not yet implemented")
+    click.echo("See docs/specification.md for implementation details")
+    raise SystemExit(1)
+
+
+@report.command("structure")
+@click.option("--file", "file_path", required=True, type=click.Path(exists=True), help="File to analyze")
+@click.option("--format", type=click.Choice(["tree", "json"]), default="tree", help="Output format")
+def report_structure(file_path: str, format: str):
+    """Show the structure of a single file.
+
+    Examples:
+
+        # Show structure as tree
+        plantuml-manipulator report structure --file diagram.puml
+
+        # Export structure as JSON
+        plantuml-manipulator report structure --file diagram.puml --format json
+    """
+    click.echo("L Command 'report structure' not yet implemented")
+    click.echo("See docs/specification.md for implementation details")
+    raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()

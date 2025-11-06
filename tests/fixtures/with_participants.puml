@@ -1,0 +1,16 @@
+@startuml
+title Multiple Participants
+
+participant "User" as User #lightblue
+participant "Frontend" as Frontend #orange
+participant "API" as API #lightgreen
+participant "Database" as DB #yellow
+
+User -> Frontend: Click button
+Frontend -> API: HTTP Request
+API -> DB: Query
+DB --> API: Data
+API --> Frontend: JSON Response
+Frontend --> User: Display result
+
+@enduml

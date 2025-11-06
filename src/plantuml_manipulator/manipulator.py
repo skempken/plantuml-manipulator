@@ -1,0 +1,178 @@
+"""PlantUML Manipulator - Core logic for modifying PlantUML diagrams.
+
+This module provides functions to manipulate PlantUML sequence diagrams:
+- Insert blocks after specific groups
+- Add participants at correct positions
+- Modify diagram structures programmatically
+
+See docs/specification.md for detailed algorithm descriptions.
+"""
+
+from typing import List, Optional
+from pathlib import Path
+from .parser import DiagramStructure, Group, Participant
+
+
+class DiagramManipulator:
+    """Core manipulation logic for PlantUML diagrams.
+
+    This class provides methods to modify PlantUML diagrams while
+    preserving structure and formatting.
+
+    Usage:
+        manipulator = DiagramManipulator()
+        result = manipulator.insert_after_group(
+            diagram, "Process Request", block_content
+        )
+    """
+
+    def __init__(self):
+        """Initialize the manipulator."""
+        pass
+
+    def insert_after_group(
+        self,
+        structure: DiagramStructure,
+        group_name: str,
+        block_lines: List[str],
+    ) -> List[str]:
+        """Insert a block of lines after a specific group.
+
+        Args:
+            structure: Parsed diagram structure
+            group_name: Name of the group to insert after
+            block_lines: Lines to insert
+
+        Returns:
+            Modified diagram as list of lines
+
+        Raises:
+            ValueError: If group not found
+        """
+        raise NotImplementedError("Manipulator implementation pending - see docs/specification.md")
+
+    def add_participant(
+        self,
+        structure: DiagramStructure,
+        participant_line: str,
+        after_participant: Optional[str] = None,
+    ) -> List[str]:
+        """Add a participant declaration to the diagram.
+
+        If after_participant is specified, inserts after that participant.
+        Otherwise, adds at the end of the participant list.
+
+        Args:
+            structure: Parsed diagram structure
+            participant_line: The participant declaration to add
+            after_participant: Optional name of participant to insert after
+
+        Returns:
+            Modified diagram as list of lines
+        """
+        raise NotImplementedError("Manipulator implementation pending - see docs/specification.md")
+
+    def remove_group(self, structure: DiagramStructure, group_name: str) -> List[str]:
+        """Remove a group block from the diagram.
+
+        Args:
+            structure: Parsed diagram structure
+            group_name: Name of the group to remove
+
+        Returns:
+            Modified diagram as list of lines
+
+        Raises:
+            ValueError: If group not found
+        """
+        raise NotImplementedError("Manipulator implementation pending - see docs/specification.md")
+
+    def replace_group(
+        self,
+        structure: DiagramStructure,
+        group_name: str,
+        new_content: List[str],
+    ) -> List[str]:
+        """Replace the content of a group with new content.
+
+        Args:
+            structure: Parsed diagram structure
+            group_name: Name of the group to replace
+            new_content: New content for the group
+
+        Returns:
+            Modified diagram as list of lines
+
+        Raises:
+            ValueError: If group not found
+        """
+        raise NotImplementedError("Manipulator implementation pending - see docs/specification.md")
+
+    def preserve_indentation(self, original_line: str, new_content: List[str]) -> List[str]:
+        """Apply the indentation from original_line to all lines in new_content.
+
+        Args:
+            original_line: Line with indentation to preserve
+            new_content: Content to apply indentation to
+
+        Returns:
+            Content with preserved indentation
+        """
+        indent = original_line[: len(original_line) - len(original_line.lstrip())]
+        return [indent + line if line.strip() else line for line in new_content]
+
+
+class FileProcessor:
+    """Process multiple files with manipulation operations.
+
+    Handles batch operations, dry-run mode, backups, and filtering.
+
+    Usage:
+        processor = FileProcessor(dry_run=True)
+        results = processor.process_files(
+            pattern="*.puml",
+            operation=insert_operation
+        )
+    """
+
+    def __init__(self, dry_run: bool = False, create_backup: bool = False, verbose: bool = False):
+        """Initialize the file processor.
+
+        Args:
+            dry_run: If True, don't write changes
+            create_backup: If True, create .bak files
+            verbose: If True, print detailed progress
+        """
+        self.dry_run = dry_run
+        self.create_backup = create_backup
+        self.verbose = verbose
+
+    def process_files(
+        self,
+        pattern: str,
+        operation: callable,
+        skip_if_exists: Optional[str] = None,
+        only_if_has_participant: Optional[str] = None,
+        only_if_has_group: Optional[str] = None,
+    ) -> dict:
+        """Process multiple files matching a pattern.
+
+        Args:
+            pattern: Glob pattern for files
+            operation: Function to apply to each file
+            skip_if_exists: Skip if file contains this text
+            only_if_has_participant: Only process files with this participant
+            only_if_has_group: Only process files with this group
+
+        Returns:
+            Dictionary with processing results
+        """
+        raise NotImplementedError("FileProcessor implementation pending - see docs/specification.md")
+
+    def create_backup_file(self, file_path: Path) -> None:
+        """Create a backup of a file.
+
+        Args:
+            file_path: Path to file to backup
+        """
+        raise NotImplementedError("FileProcessor implementation pending - see docs/specification.md")
