@@ -58,22 +58,31 @@
 - [x] Unit tests for manipulator
 - [x] Test fixtures and examples
 
-### Phase 2: CLI & File Processing (Next)
+### Phase 2: CLI & File Processing ✅ Complete
 
-- [ ] CLI implementation (cli.py)
-  - [ ] insert-after command
-  - [ ] add-participant command
-  - [ ] --dry-run and --verbose flags
-- [ ] FileProcessor implementation
-  - [ ] Batch file processing
-  - [ ] File filtering (only-if-has-participant, skip-if-exists)
-  - [ ] Backup functionality
+- [x] CLI implementation (cli.py)
+  - [x] insert-after command
+  - [x] add-participant command
+  - [x] --dry-run and --verbose flags
+- [x] FileProcessor implementation
+  - [x] Batch file processing
+  - [x] File filtering (only-if-has-participant, skip-if-exists, only-if-has-group)
+  - [x] Backup functionality
 
-### Phase 3: Validation & Reporting
+### Phase 3: Validation & Reporting ✅ Complete
 
-- [ ] Validator implementation
-- [ ] Report generation
-- [ ] JSON output format
+- [x] Validator implementation
+  - [x] validate_structure() - Validate diagram structure with required/forbidden elements
+  - [x] validate_file() - Validate a single file
+  - [x] validate_multiple_files() - Batch validation with filtering
+- [x] Report generation
+  - [x] list_groups() - List all groups across files
+  - [x] list_participants() - List all participants across files
+  - [x] show_structure() - Show structure of a single file
+  - [x] generate_matrix() - Matrix showing file/group relationships
+- [x] JSON output format (+ table, simple, CSV formats)
+- [x] validate CLI command with multiple output formats
+- [x] report CLI commands (groups, participants, structure)
 
 ### Phase 4: Advanced Features
 

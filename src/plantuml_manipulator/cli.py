@@ -10,6 +10,9 @@ from pathlib import Path
 from typing import Optional
 
 from . import __version__
+from .manipulator import DiagramManipulator, FileProcessor
+from .parser import PlantUMLParser
+from .validator import DiagramValidator, ReportGenerator, ValidationStatus
 
 
 @click.group()
@@ -80,9 +83,53 @@ def insert_after(
             --only-if-has-participant "Database" \\
             --backup
     """
-    click.echo("L Command 'insert-after' not yet implemented")
-    click.echo("See docs/specification.md for implementation details")
-    raise SystemExit(1)
+    # Read the block file
+    block_path = Path(block_file)
+    if not block_path.exists():
+        click.echo(f"Error: Block file not found: {block_file}", err=True)
+        raise SystemExit(1)
+
+    with open(block_path, 'r', encoding='utf-8') as f:
+        block_lines = [line.rstrip('\n\r') for line in f.readlines()]
+
+    # Create manipulator and processor
+    manipulator = DiagramManipulator()
+    processor = FileProcessor(dry_run=dry_run, create_backup=backup, verbose=verbose)
+
+    # Define the operation
+    def operation(structure):
+        return manipulator.insert_after_group(structure, after_group, block_lines)
+
+    # Process files
+    if verbose or dry_run:
+        mode = "[DRY RUN] " if dry_run else ""
+        click.echo(f"{mode}Inserting block after group '{after_group}'")
+        click.echo(f"Pattern: {pattern}")
+        click.echo(f"Block file: {block_file}")
+        click.echo()
+
+    results = processor.process_files(
+        pattern=pattern,
+        operation=operation,
+        skip_if_exists=skip_if_exists,
+        only_if_has_participant=only_if_has_participant,
+        only_if_has_group=only_if_has_group,
+    )
+
+    # Print summary
+    click.echo()
+    click.echo("Summary:")
+    click.echo(f"  Total files found: {results['total']}")
+    click.echo(f"  Processed: {len(results['processed'])}")
+    click.echo(f"  Skipped: {len(results['skipped'])}")
+    click.echo(f"  Errors: {len(results['errors'])}")
+
+    if results['errors']:
+        click.echo()
+        click.echo("Errors:", err=True)
+        for error in results['errors']:
+            click.echo(f"  {error['file']}: {error['error']}", err=True)
+        raise SystemExit(1)
 
 
 @main.command("add-participant")
@@ -121,9 +168,44 @@ def add_participant(
             --participant 'participant "NewService" as NewService' \\
             --backup
     """
-    click.echo("L Command 'add-participant' not yet implemented")
-    click.echo("See docs/specification.md for implementation details")
-    raise SystemExit(1)
+    # Create manipulator and processor
+    manipulator = DiagramManipulator()
+    processor = FileProcessor(dry_run=dry_run, create_backup=backup, verbose=verbose)
+
+    # Define the operation
+    def operation(structure):
+        return manipulator.add_participant(structure, participant, after_participant)
+
+    # Process files
+    if verbose or dry_run:
+        mode = "[DRY RUN] " if dry_run else ""
+        click.echo(f"{mode}Adding participant: {participant}")
+        if after_participant:
+            click.echo(f"After participant: {after_participant}")
+        click.echo(f"Pattern: {pattern}")
+        click.echo()
+
+    results = processor.process_files(
+        pattern=pattern,
+        operation=operation,
+        skip_if_exists=skip_if_exists,
+        only_if_has_group=only_if_has_group,
+    )
+
+    # Print summary
+    click.echo()
+    click.echo("Summary:")
+    click.echo(f"  Total files found: {results['total']}")
+    click.echo(f"  Processed: {len(results['processed'])}")
+    click.echo(f"  Skipped: {len(results['skipped'])}")
+    click.echo(f"  Errors: {len(results['errors'])}")
+
+    if results['errors']:
+        click.echo()
+        click.echo("Errors:", err=True)
+        for error in results['errors']:
+            click.echo(f"  {error['file']}: {error['error']}", err=True)
+        raise SystemExit(1)
 
 
 @main.command("validate")
@@ -162,9 +244,85 @@ def validate(
             --require-participant "Database" \\
             --report-format json
     """
-    click.echo("L Command 'validate' not yet implemented")
-    click.echo("See docs/specification.md for implementation details")
-    raise SystemExit(1)
+    validator = DiagramValidator()
+
+    # Convert tuples to lists
+    required_groups = list(require_group) if require_group else None
+    required_participants = list(require_participant) if require_participant else None
+
+    if verbose:
+        click.echo(f"Validating files matching pattern: {pattern}")
+        if required_groups:
+            click.echo(f"Required groups: {', '.join(required_groups)}")
+        if required_participants:
+            click.echo(f"Required participants: {', '.join(required_participants)}")
+        click.echo()
+
+    # Perform validation
+    report = validator.validate_multiple_files(
+        pattern=pattern,
+        required_groups=required_groups,
+        required_participants=required_participants,
+        only_if_has_participant=only_if_has_participant,
+        only_if_has_group=only_if_has_group
+    )
+
+    # Output results based on format
+    if report_format == "json":
+        import json
+        data = {
+            'summary': {
+                'total_files': report.total_files,
+                'files_passed': report.files_passed,
+                'files_failed': report.files_failed,
+                'files_skipped': report.files_skipped
+            },
+            'results': [
+                {
+                    'file': str(r.file_path),
+                    'status': r.status.value,
+                    'checks_passed': r.checks_passed,
+                    'checks_failed': r.checks_failed,
+                    'messages': r.messages,
+                    'warnings': r.warnings
+                }
+                for r in report.results
+            ]
+        }
+        click.echo(json.dumps(data, indent=2))
+    elif report_format == "simple":
+        for result in report.results:
+            status_symbol = "✓" if result.status == ValidationStatus.PASS else "✗" if result.status == ValidationStatus.FAIL else "·"
+            click.echo(f"{status_symbol} {result.file_path}")
+    else:  # table
+        click.echo()
+        click.echo("Validation Results")
+        click.echo("=" * 80)
+        click.echo()
+
+        for result in report.results:
+            if result.status == ValidationStatus.SKIPPED and not verbose:
+                continue
+
+            status_symbol = "✓" if result.status == ValidationStatus.PASS else "✗" if result.status == ValidationStatus.FAIL else "·"
+            click.echo(f"{status_symbol} {result.file_path}")
+
+            if verbose or result.status == ValidationStatus.FAIL:
+                for msg in result.messages:
+                    click.echo(f"  {msg}")
+                for warn in result.warnings:
+                    click.echo(f"  ⚠ {warn}")
+                click.echo()
+
+        click.echo("=" * 80)
+        click.echo(f"Total files: {report.total_files}")
+        click.echo(f"Passed: {report.files_passed}")
+        click.echo(f"Failed: {report.files_failed}")
+        click.echo(f"Skipped: {report.files_skipped}")
+
+    # Exit with error code if any validations failed
+    if report.files_failed > 0:
+        raise SystemExit(1)
 
 
 @main.group("report")
@@ -187,9 +345,9 @@ def report_groups(pattern: str, format: str):
         # Export to JSON
         plantuml-manipulator report groups --pattern "*.puml" --format json
     """
-    click.echo("L Command 'report groups' not yet implemented")
-    click.echo("See docs/specification.md for implementation details")
-    raise SystemExit(1)
+    generator = ReportGenerator()
+    output = generator.list_groups(pattern, format)
+    click.echo(output)
 
 
 @report.command("participants")
@@ -206,9 +364,9 @@ def report_participants(pattern: str, format: str):
         # Export to CSV
         plantuml-manipulator report participants --pattern "*.puml" --format csv
     """
-    click.echo("L Command 'report participants' not yet implemented")
-    click.echo("See docs/specification.md for implementation details")
-    raise SystemExit(1)
+    generator = ReportGenerator()
+    output = generator.list_participants(pattern, format)
+    click.echo(output)
 
 
 @report.command("structure")
@@ -225,9 +383,9 @@ def report_structure(file_path: str, format: str):
         # Export structure as JSON
         plantuml-manipulator report structure --file diagram.puml --format json
     """
-    click.echo("L Command 'report structure' not yet implemented")
-    click.echo("See docs/specification.md for implementation details")
-    raise SystemExit(1)
+    generator = ReportGenerator()
+    output = generator.show_structure(Path(file_path), format)
+    click.echo(output)
 
 
 if __name__ == "__main__":
