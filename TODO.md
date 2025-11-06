@@ -41,12 +41,46 @@
 - [x] examples/snippets/validation.puml
 - [x] examples/snippets/integration.puml
 
-## Implementation (Later)
+## Implementation
 
-- [ ] Phase 1: Core implementation (insert-after, add-participant)
-- [ ] Phase 2: Validation & reporting
-- [ ] Phase 3: Test coverage
-- [ ] Phase 4: Advanced features
+### Phase 1: Core Implementation ✅ Complete
+
+- [x] PlantUMLParser implementation
+  - [x] parse_file() - Parse PlantUML files
+  - [x] parse_lines() - Parse content from lines
+  - [x] find_participants() - Extract participant declarations
+  - [x] find_groups() - Extract group blocks with nesting support
+- [x] DiagramManipulator implementation
+  - [x] insert_after_group() - Insert blocks after groups
+  - [x] add_participant() - Add participant declarations
+- [x] Custom exception classes (GroupNotFoundError, ParticipantNotFoundError, etc.)
+- [x] Unit tests for parser (23 tests passing)
+- [x] Unit tests for manipulator
+- [x] Test fixtures and examples
+
+### Phase 2: CLI & File Processing (Next)
+
+- [ ] CLI implementation (cli.py)
+  - [ ] insert-after command
+  - [ ] add-participant command
+  - [ ] --dry-run and --verbose flags
+- [ ] FileProcessor implementation
+  - [ ] Batch file processing
+  - [ ] File filtering (only-if-has-participant, skip-if-exists)
+  - [ ] Backup functionality
+
+### Phase 3: Validation & Reporting
+
+- [ ] Validator implementation
+- [ ] Report generation
+- [ ] JSON output format
+
+### Phase 4: Advanced Features
+
+- [ ] remove_group() method
+- [ ] replace_group() method
+- [ ] Interactive mode
+- [ ] Undo functionality
 
 ## Notes
 
