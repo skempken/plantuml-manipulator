@@ -1,0 +1,11 @@
+@startuml
+title Simple Process
+
+participant "User" as User
+participant "System" as System
+
+User -> System: Request
+System -> System: Process
+System --> User: Response
+
+@enduml

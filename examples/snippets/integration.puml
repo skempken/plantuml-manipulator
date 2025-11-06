@@ -1,0 +1,12 @@
+group Integrate with External System
+    System -> ExternalAPI: Send request
+    ExternalAPI -> ExternalAPI: Process request
+    ExternalAPI --> System: Response data
+    System -> System: Handle response
+    alt Success
+        System -> System: Process data
+    else Error
+        System -> System: Handle error
+        System --> User: Error notification
+    end
+end group

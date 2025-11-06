@@ -1,0 +1,22 @@
+@startuml
+title Process with Groups
+
+participant "User" as User
+participant "System" as System
+participant "Database" as DB
+
+group Initialize
+    System -> System: Load configuration
+    System -> DB: Connect
+    DB --> System: Connection OK
+end group
+
+group Process Request
+    User -> System: Send request
+    System -> System: Validate input
+    System -> DB: Query data
+    DB --> System: Result
+    System --> User: Response
+end group
+
+@enduml
