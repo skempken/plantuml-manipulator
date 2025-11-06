@@ -178,7 +178,7 @@ python -m plantuml_manipulator report structure --file diagram.puml
 
 ## Development Status
 
-**Current Status**: Core functionality implemented, validation and reporting in progress.
+**Current Status**: Core functionality complete, ready for production use.
 
 This repository currently contains:
 - ✅ Complete technical specification
@@ -188,7 +188,8 @@ This repository currently contains:
 - ✅ Core implementation (parser, manipulator)
 - ✅ CLI commands (insert-after, add-participant)
 - ✅ Batch file processing with filtering
-- ⏳ Validation and reporting (in progress)
+- ✅ Validation and reporting (validate, report groups/participants/structure)
+- ✅ Multiple output formats (table, JSON, CSV, simple)
 
 ## Contributing
 
@@ -256,17 +257,18 @@ See [docs/claude-skill.md](docs/claude-skill.md) for integration details.
 - [x] Backup system
 - [x] Dry-run and verbose modes
 
-### Phase 3: Validation & Reporting (Next)
-- [ ] Implement `validate` command
-- [ ] Implement `report` commands
-- [ ] JSON output format
-- [ ] Integration tests
+### Phase 3: Validation & Reporting ✅ Complete
+- [x] Implement `validate` command
+- [x] Implement `report` commands
+- [x] JSON output format (+ table, CSV, simple)
+- [x] Comprehensive validation and reporting features
 
-### Phase 4: Advanced Features
+### Phase 4: Advanced Features (Future)
 - [ ] Interactive mode
 - [ ] Configuration file support
 - [ ] Plugin system for custom validators
 - [ ] remove_group() and replace_group() methods
+- [ ] Integration tests with real-world PlantUML files
 
 ## Support
 
