@@ -20,7 +20,7 @@ Use this skill for:
 
 ## Tool Availability
 
-The tool is located at: `./tool/plantuml-manipulator/`
+The tool is available as a Python module in the project.
 
 First check if the tool is implemented:
 ```bash
@@ -221,5 +221,5 @@ Shall I proceed?
 
 ## Further Information
 
-For detailed API reference see: ../../api-reference.md
-For full specification see: ../../specification.md
+For detailed API reference see: ../api-reference.md
+For full specification see: ../specification.md
