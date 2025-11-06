@@ -1,0 +1,4 @@
+# Core dependencies
+click>=8.1.0          # CLI framework
+rich>=13.0.0          # Terminal formatting and output
+pathlib>=1.0.0        # Path handling (stdlib in Python 3.4+)

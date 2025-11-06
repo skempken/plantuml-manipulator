@@ -1,0 +1,11 @@
+group Perform Validation
+    System -> System: Validate input data
+    System -> ValidationService: Check business rules
+    ValidationService --> System: Validation result
+    alt Validation successful
+        System -> System: Continue processing
+    else Validation failed
+        System -> System: Handle validation error
+        System --> User: Error message
+    end
+end group
